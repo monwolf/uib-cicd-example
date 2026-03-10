@@ -11,7 +11,7 @@ jobs:
       - uses: actions/checkout@v6
       - uses: actions/setup-go@v6
         with:
-          go-version: '1.25'
+          go-version: '1.24'
       - name: Build
         run: go build ./...
 
@@ -21,9 +21,9 @@ jobs:
       - uses: actions/checkout@v6
       - uses: actions/setup-go@v6
         with:
-          go-version: '1.25'
+          go-version: '1.24'
       - name: golangci-lint
-        uses: golangci/golangci-lint-action@v3
+        uses: golangci/golangci-lint-action@v9.2.0
         with:
           version: latest
 
@@ -33,7 +33,7 @@ jobs:
       - uses: actions/checkout@v6
       - uses: actions/setup-go@v6
         with:
-          go-version: '1.25'
+          go-version: '1.24'
       - name: Test with coverage
         run: go test -coverprofile=coverage.out ./...
 
@@ -41,12 +41,17 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
-      - name: Run Snyk Code Test
-        uses: snyk/actions/code-test@master
+      - name: Run Snyk to check for vulnerabilities
+        uses: snyk/actions/golang@master
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
         with:
-          sarif: true
+          args: --sarif-file-output=snyk-results.sarif
+      - name: Upload Snyk scan results to GitHub Security tab
+        uses: github/codeql-action/upload-sarif@v4
+        if: always()
+        with:
+          sarif_file: 'snyk-results.sarif'
 
   sca:
     runs-on: ubuntu-latest
