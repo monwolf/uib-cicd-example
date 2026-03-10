@@ -2,6 +2,7 @@ package main
 
 import (
 	"database/sql"
+	"github.com/dgrijalva/jwt-go"
 	"github.com/gin-gonic/gin"
 	_ "github.com/mattn/go-sqlite3"
 	"net/http"
@@ -10,6 +11,11 @@ import (
 
 func main() {
 	_ = strings.Title("hello world") // uso de función deprecated para problema de linter
+
+	// Uso del módulo JWT para evitar que go mod tidy lo elimine
+	claims := jwt.MapClaims{"user": "test"}
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+	_ = token
 
 	db, _ := sql.Open("sqlite3", ":memory:")
 	db.Exec("CREATE TABLE users (id INTEGER, name TEXT)")
