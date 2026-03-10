@@ -46,12 +46,12 @@ jobs:
       - uses: actions/checkout@v6
       - name: Run Snyk to check for vulnerabilities
         uses: snyk/actions/golang@master
-        command: code test
         continue-on-error: true # To make sure that SARIF upload gets called
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
         with:
           args: --sarif-file-output=snyk-results.sarif
+          command: code test
       - name: Upload Snyk scan results to GitHub Security tab
         uses: github/codeql-action/upload-sarif@v4
         with:
@@ -68,6 +68,7 @@ jobs:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
         with:
           args: --sarif-file-output=snyk-results.sarif
+          command: test
       - name: Upload Snyk scan results to GitHub Security tab
         uses: github/codeql-action/upload-sarif@v4
         with:
