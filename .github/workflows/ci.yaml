@@ -46,13 +46,14 @@ jobs:
       - uses: actions/checkout@v6
       - name: Run Snyk to check for vulnerabilities
         uses: snyk/actions/golang@master
+        command: code test
+        continue-on-error: true # To make sure that SARIF upload gets called
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
         with:
           args: --sarif-file-output=snyk-results.sarif
       - name: Upload Snyk scan results to GitHub Security tab
         uses: github/codeql-action/upload-sarif@v4
-        if: always()
         with:
           sarif_file: 'snyk-results.sarif'
 
@@ -60,15 +61,14 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
-      - name: Run Trivy vulnerability scanner
-        uses: aquasecurity/trivy-action@master
+      - name: Run Snyk to check for vulnerabilities
+        uses: snyk/actions/golang@master
+        continue-on-error: true # To make sure that SARIF upload gets called
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
         with:
-          scan-type: 'fs'
-          scan-ref: '.'
-          format: 'sarif'
-          output: 'trivy-results.sarif'
-      - name: Upload Trivy scan results to GitHub Security tab
+          args: --sarif-file-output=snyk-results.sarif
+      - name: Upload Snyk scan results to GitHub Security tab
         uses: github/codeql-action/upload-sarif@v4
-        if: always()
         with:
-          sarif_file: 'trivy-results.sarif'
+          sarif_file: 'snyk-results.sarif'
