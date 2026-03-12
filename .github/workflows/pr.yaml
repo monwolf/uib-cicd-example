@@ -44,26 +44,56 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
-      - name: Run Snyk Code Test
-        uses: snyk/actions/code-test@master
+      - name: Run Snyk to check for vulnerabilities
+        uses: snyk/actions/golang@master
+        continue-on-error: true # To make sure that SARIF upload gets called
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
         with:
-          sarif: true
+          args: --sarif-file-output=snyk-results.sarif
+          command: code test
+      - name: Upload Snyk scan results to GitHub Security tab
+        uses: github/codeql-action/upload-sarif@v4
+        with:
+          sarif_file: 'snyk-results.sarif'
+      - name: Check for High or Critical vulnerabilities
+        shell: bash
+        run: |
+          # Contamos cuántos resultados tienen nivel 'error' (que mapea a High/Critical en SARIF)
+          ERRORS=$(jq '[.runs[].results[] | select(.level == "error")] | length' snyk-results.sarif)
+          
+          echo "Vulnerabilidades críticas/altas encontradas: $ERRORS"
+          
+          if [ "$ERRORS" -gt 0 ]; then
+            echo "Error: Se encontraron $ERRORS vulnerabilidades de nivel Alto/Crítico."
+            exit 1
+          fi
 
   sca:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
-      - name: Run Trivy vulnerability scanner
-        uses: aquasecurity/trivy-action@master
+      - name: Run Snyk to check for vulnerabilities
+        uses: snyk/actions/golang@master
+        continue-on-error: true # To make sure that SARIF upload gets called
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
         with:
-          scan-type: 'fs'
-          scan-ref: '.'
-          format: 'sarif'
-          output: 'trivy-results.sarif'
-      - name: Upload Trivy scan results to GitHub Security tab
-        uses: github/codeql-action/upload-sarif@v2
-        if: always()
+          args: --sarif-file-output=snyk-results.sarif
+          command: test
+      - name: Upload Snyk scan results to GitHub Security tab
+        uses: github/codeql-action/upload-sarif@v4
         with:
-          sarif_file: 'trivy-results.sarif'
+          sarif_file: 'snyk-results.sarif'
+      - name: Check for High or Critical vulnerabilities
+        shell: bash
+        run: |
+          # Contamos cuántos resultados tienen nivel 'error' (que mapea a High/Critical en SARIF)
+          ERRORS=$(jq '[.runs[].results[] | select(.level == "error")] | length' snyk-results.sarif)
+          
+          echo "Vulnerabilidades críticas/altas encontradas: $ERRORS"
+          
+          if [ "$ERRORS" -gt 0 ]; then
+            echo "Error: Se encontraron $ERRORS vulnerabilidades de nivel Alto/Crítico."
+            exit 1
+          fi
