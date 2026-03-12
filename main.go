@@ -6,33 +6,54 @@ import (
 	"github.com/gin-gonic/gin"
 	_ "github.com/mattn/go-sqlite3"
 	"net/http"
-	"strings" // para usar función deprecated
+	"golang.org/x/text/cases"
+	"golang.org/x/text/language"
 )
 
 func main() {
-	_ = strings.Title("hello world") // uso de función deprecated para problema de linter
-
+	_ = cases.Title(language.Und, cases.NoLower).String("hello world")
+	
 	// Uso del módulo JWT para evitar que go mod tidy lo elimine
 	claims := jwt.MapClaims{"user": "test"}
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 	_ = token
 
-	db, _ := sql.Open("sqlite3", ":memory:")
-	db.Exec("CREATE TABLE users (id INTEGER, name TEXT)")
+	db, err := sql.Open("sqlite3", ":memory:")
+	if err != nil {
+		panic(err)
+	}
+	_, err = db.Exec("CREATE TABLE users (id INTEGER, name TEXT)")
+	if err != nil {
+		panic(err)
+	}
 
 	r := gin.Default()
 	r.GET("/user", func(c *gin.Context) {
 		name := c.Query("name")
 		query := "SELECT * FROM users WHERE name = '" + name + "'" // SQL injection vulnerable
-		rows, _ := db.Query(query)
-		defer rows.Close()
+		rows, err := db.Query(query)
+		if err != nil {
+			panic(err)
+		}
+		defer func() {
+			err = rows.Close()
+			if err != nil {
+				panic(err)
+			}
+		}()
 		// Simular procesamiento
 		var id int
 		var userName string
 		if rows.Next() {
-			rows.Scan(&id, &userName)
+			err = rows.Scan(&id, &userName)
+			if err != nil {
+				panic(err)
+			}
 		}
 		c.JSON(http.StatusOK, gin.H{"id": id, "name": userName})
 	})
-	r.Run()
+	err = r.Run()
+	if err != nil {
+		panic(err)
+	}
 }
