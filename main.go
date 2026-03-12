@@ -10,8 +10,8 @@ import (
 )
 
 func main() {
-	_ = strings.Title("hello world") // uso de función deprecated para problema de linter
-
+	_ = cases.Title(language.Und, cases.NoLower).String("hello world")
+	
 	// Uso del módulo JWT para evitar que go mod tidy lo elimine
 	claims := jwt.MapClaims{"user": "test"}
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
