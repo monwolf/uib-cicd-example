@@ -2,7 +2,7 @@ package main
 
 import (
 	"database/sql"
-	"github.com/dgrijalva/jwt-go"
+	"github.com/golang-jwt/jwt/v5"
 	"github.com/gin-gonic/gin"
 	_ "github.com/mattn/go-sqlite3"
 	"net/http"
