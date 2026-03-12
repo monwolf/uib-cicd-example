@@ -23,8 +23,8 @@ func main() {
 	r := gin.Default()
 	r.GET("/user", func(c *gin.Context) {
 		name := c.Query("name")
-		query := "SELECT * FROM users WHERE name = '" + name + "'" // SQL injection vulnerable
-		rows, _ := db.Query(query)
+		query := "SELECT * FROM users WHERE name = ?"
+		rows, _ := db.Query(query, name)
 		defer rows.Close()
 		// Simular procesamiento
 		var id int
