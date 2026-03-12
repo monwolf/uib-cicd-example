@@ -56,6 +56,18 @@ jobs:
         uses: github/codeql-action/upload-sarif@v4
         with:
           sarif_file: 'snyk-results.sarif'
+      - name: Check for High or Critical vulnerabilities
+        shell: bash
+        run: |
+          # Contamos cuántos resultados tienen nivel 'error' (que mapea a High/Critical en SARIF)
+          ERRORS=$(jq '[.runs[].results[] | select(.level == "error")] | length' snyk-results.sarif)
+          
+          echo "Vulnerabilidades críticas/altas encontradas: $ERRORS"
+          
+          if [ "$ERRORS" -gt 0 ]; then
+            echo "Error: Se encontraron $ERRORS vulnerabilidades de nivel Alto/Crítico."
+            exit 1
+          fi
 
   sca:
     runs-on: ubuntu-latest
@@ -73,3 +85,15 @@ jobs:
         uses: github/codeql-action/upload-sarif@v4
         with:
           sarif_file: 'snyk-results.sarif'
+      - name: Check for High or Critical vulnerabilities
+        shell: bash
+        run: |
+          # Contamos cuántos resultados tienen nivel 'error' (que mapea a High/Critical en SARIF)
+          ERRORS=$(jq '[.runs[].results[] | select(.level == "error")] | length' snyk-results.sarif)
+          
+          echo "Vulnerabilidades críticas/altas encontradas: $ERRORS"
+          
+          if [ "$ERRORS" -gt 0 ]; then
+            echo "Error: Se encontraron $ERRORS vulnerabilidades de nivel Alto/Crítico."
+            exit 1
+          fi
